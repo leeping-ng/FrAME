@@ -12,12 +12,11 @@ predict:
   target_images_dir: "../data/target/images"
   target_metadata_path: "../data/target/metadata.csv"
   coefficients:
-    a: 0.723
-    b: 0.070
+    a: -0.723
+    b: -0.070
     c: 0.695
 
 # TO-DO
 # RGB in dataloader
-# coefficients negative
   
 

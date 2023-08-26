@@ -49,19 +49,6 @@ def parse_args():
     return args.mode
 
 
-def exponential_func(x, a, b, c):
-    return -a * np.exp(-b * x) + c
-
-
-def perf_drop_from_signal(signal, a, b, c):
-    """
-    y = -a*e^(-bx) + c
-    x = (-1/b)*ln((c-y)/a)
-    Where a, b, c = *popt
-    """
-    return (-1 / b) * np.log((c - signal) / a)
-
-
 def extract_softmaxes_by_class(source_softmax, target_softmax, num_classes):
     # initialise empty data structures to be extended over batches
     source_softmax_by_class = {}
@@ -107,11 +94,25 @@ def multiple_univariate_ks_test(source_softmax_by_class, target_softmax_by_class
     return ks_signal, ks_pvalue, shift_detected
 
 
+def exponential_func(x, a, b, c):
+    # fix curve shape such that non-linear least squares is able to converge
+    return -a * np.exp(-b * x) + c
+
+
+def perf_drop_from_signal(signal, a, b, c):
+    """
+    y = a*e^(bx) + c
+    x = (1/b)*ln((y-c)/a)
+    Where a, b, c = *popt
+    """
+    return (1 / b) * np.log((signal - c) / a)
+
+
 def fit_and_save_coefficients(df_tf, save_dir):
     popt, _ = optimize.curve_fit(
         exponential_func, df_tf["Actual perf drop"], df_tf["K-S signal"]
     )
-    a, b, c = popt[0], popt[1], popt[2]
+    a, b, c = -popt[0], -popt[1], popt[2]
     print("COEFFICIENTS")
     print("a:", a)
     print("b:", b)
@@ -128,9 +129,10 @@ def fit_and_save_coefficients(df_tf, save_dir):
 def plot_results(df_tf, save_dir, a, b, c):
     plt.figure()
     plt.scatter(df_tf["Actual perf drop"], df_tf["K-S signal"], s=10)
+    # negative a & b to undo negative in exponential_func()
     plt.plot(
         df_tf["Actual perf drop"],
-        exponential_func(df_tf["Actual perf drop"], a, b, c),
+        exponential_func(df_tf["Actual perf drop"], -a, -b, c),
         "r-",
         linewidth=3,
     )
