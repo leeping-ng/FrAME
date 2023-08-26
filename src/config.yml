@@ -1,0 +1,23 @@
+common:
+  num_classes: 2
+  batch_size: 32  
+  bbsd_checkpoint_path: "../weights/resnet-18_pretrained/checkpoints/epoch=06-val_roc-auc=0.901.ckpt"  #resnet-18
+  result_folder: "../logs/results/"
+fit:
+  source_images_dir: "../data/source/images"
+  source_metadata_path: "../data/source/metadata.csv"
+predict:
+  source_images_dir: "../data/source/images"
+  source_metadata_path: "../data/source/metadata.csv"
+  target_images_dir: "../data/target/images"
+  target_metadata_path: "../data/target/metadata.csv"
+  coefficients:
+    a: 0.723
+    b: 0.070
+    c: 0.695
+
+# TO-DO
+# RGB in dataloader
+# coefficients negative
+  
+
