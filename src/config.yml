@@ -6,6 +6,7 @@ common:
 fit:
   source_images_dir: "../data/source/images"
   source_metadata_path: "../data/source/metadata.csv"
+  performance_metric: "test_roc-auc"
 predict:
   source_images_dir: "../data/source/images"
   source_metadata_path: "../data/source/metadata.csv"
@@ -15,8 +16,5 @@ predict:
     a: -0.723
     b: -0.070
     c: 0.695
-
-# TO-DO
-# RGB in dataloader
   
 
