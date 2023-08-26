@@ -82,10 +82,7 @@ class Model(pl.LightningModule):
         logits = self.classifier(embeddings)
 
         softmax = nn.Softmax(dim=1)
-        output["embeddings"] = embeddings
-        output["softmax"] = softmax(logits)
-        output["preds"] = torch.argmax(logits, dim=1)
-        return output
+        return softmax(logits)
 
     def test_step(self, batch, batch_idx):
         loss, acc, roc = self._step(batch)

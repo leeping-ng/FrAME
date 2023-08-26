@@ -62,35 +62,39 @@ def perf_drop_from_signal(signal, a, b, c):
     return (-1 / b) * np.log((c - signal) / a)
 
 
-def extract_softmaxes_by_class(source_output, target_output, num_classes):
+def extract_softmaxes_by_class(source_softmax, target_softmax, num_classes):
     # initialise empty data structures to be extended over batches
-    source_softmaxes = {}
-    target_softmaxes = {}
+    source_softmax_by_class = {}
+    target_softmax_by_class = {}
 
     for i in range(num_classes):
-        source_softmaxes[i] = []
-        target_softmaxes[i] = []
+        source_softmax_by_class[i] = []
+        target_softmax_by_class[i] = []
 
     # loop over batches to aggregate softmax
-    for i, (source_batch, target_batch) in enumerate(zip(source_output, target_output)):
-        source_softmax = source_batch["softmax"].numpy()
-        target_softmax = target_batch["softmax"].numpy()
+    for i, (source_batch, target_batch) in enumerate(
+        zip(source_softmax, target_softmax)
+    ):
+        source_batch = source_batch.numpy()
+        target_batch = target_batch.numpy()
 
         for j in range(num_classes):
-            source_softmaxes[j].extend(list(source_softmax[:, j].squeeze()))
-            target_softmaxes[j].extend(list(target_softmax[:, j].squeeze()))
+            source_softmax_by_class[j].extend(list(source_batch[:, j].squeeze()))
+            target_softmax_by_class[j].extend(list(target_batch[:, j].squeeze()))
 
-    return source_softmaxes, target_softmaxes
+    return source_softmax_by_class, target_softmax_by_class
 
 
-def multiple_univariate_ks_test(source_softmaxes, target_softmaxes):
+def multiple_univariate_ks_test(source_softmax_by_class, target_softmax_by_class):
     # K-S taking in softmax
     ks_result = {}
     shift_detected = False
     ks_signal = 0
     ks_pvalue = 0
     for i in range(num_classes):
-        ks_result[i] = stats.ks_2samp(source_softmaxes[i], target_softmaxes[i])
+        ks_result[i] = stats.ks_2samp(
+            source_softmax_by_class[i], target_softmax_by_class[i]
+        )
         # Reject null hypothesis if any p-value < Bonferroni corrected significance level
         if ks_result[i].pvalue < ALPHA / num_classes:
             shift_detected = True
@@ -154,7 +158,7 @@ if __name__ == "__main__":
         configs["common"]["batch_size"],
     )
     source_dataloader = source_data_module.predict_dataloader(PREPROCESS_TF)
-    source_output = trainer.predict(model=model, dataloaders=source_dataloader)
+    source_softmax = trainer.predict(model=model, dataloaders=source_dataloader)
 
     if mode == "predict":
         a = configs["predict"]["coefficients"]["a"]
@@ -166,14 +170,14 @@ if __name__ == "__main__":
             configs["common"]["batch_size"],
         )
         target_dataloader = target_data_module.predict_dataloader(PREPROCESS_TF)
-        target_output = trainer.predict(model=model, dataloaders=target_dataloader)
+        target_softmax = trainer.predict(model=model, dataloaders=target_dataloader)
 
-        source_softmaxes, target_softmaxes = extract_softmaxes_by_class(
-            source_output, target_output, num_classes
+        source_softmax_by_class, target_softmax_by_class = extract_softmaxes_by_class(
+            source_softmax, target_softmax, num_classes
         )
 
         ks_signal, ks_pvalue, shift_detected = multiple_univariate_ks_test(
-            source_softmaxes, target_softmaxes
+            source_softmax_by_class, target_softmax_by_class
         )
 
         # Else log function will be NAN
@@ -228,17 +232,18 @@ if __name__ == "__main__":
             random.seed(0)
             target_dataloader = target_data_module.predict_dataloader(transform)
 
-            target_output = trainer.predict(model=model, dataloaders=target_dataloader)
+            target_softmax = trainer.predict(model=model, dataloaders=target_dataloader)
             target_roc = trainer.test(model=model, dataloaders=target_dataloader)[0][
                 "test_roc-auc"
             ]
 
-            source_softmaxes, target_softmaxes = extract_softmaxes_by_class(
-                source_output, target_output, num_classes
-            )
+            (
+                source_softmax_by_class,
+                target_softmax_by_class,
+            ) = extract_softmaxes_by_class(source_softmax, target_softmax, num_classes)
 
             ks_signal, ks_pvalue, shift_detected = multiple_univariate_ks_test(
-                source_softmaxes, target_softmaxes
+                source_softmax_by_class, target_softmax_by_class
             )
 
             perf_drop = 100 * (source_roc - target_roc) / source_roc
