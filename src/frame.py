@@ -103,19 +103,19 @@ def fit_pipeline(
         ]
     )
 
-    # all_tf = (
-    #     UNCHANGED_TF
-    #     | BLUR_TF
-    #     | SHARPEN_TF
-    #     | SALT_PEPPER_NOISE_TF
-    #     | SPECKLE_NOISE_TF
-    #     | CONTRAST_INC_TF
-    #     | CONTRAST_DEC_TF
-    #     | GAMMA_INC_TF
-    #     | GAMMA_DEC_TF
-    #     | MAGNIFY_TF
-    # )
-    all_tf = UNCHANGED_TF | SHARPEN_TF
+    all_tf = (
+        UNCHANGED_TF
+        | BLUR_TF
+        | SHARPEN_TF
+        | SALT_PEPPER_NOISE_TF
+        | SPECKLE_NOISE_TF
+        | CONTRAST_INC_TF
+        | CONTRAST_DEC_TF
+        | GAMMA_INC_TF
+        | GAMMA_DEC_TF
+        | MAGNIFY_TF
+    )
+    # all_tf = UNCHANGED_TF | SHARPEN_TF
 
     source_roc = trainer.test(model=model, dataloaders=source_dataloader)[0][
         "test_roc-auc"
