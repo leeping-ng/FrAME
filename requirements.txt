@@ -1,0 +1,10 @@
+matplotlib
+numpy
+pandas
+pytorch-lightning
+pyyaml
+scikit-image
+scipy
+torch
+torchmetrics
+torchvision
