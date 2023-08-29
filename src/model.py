@@ -18,12 +18,12 @@ class Model(pl.LightningModule):
 
     def predict_step(self, batch: torch.Tensor, batch_idx: int) -> torch.Tensor:
         """
-        Step for prediction/inference, returning the softmax for shift detection
+        Step for prediction/inference, returning the softmax vector for shift detection.
         """
         pass
 
     def test_step(self, batch: torch.Tensor, batch_idx: int) -> float:
         """
-        Step for testing, calculating loss, accuracy and ROC-AUC.
+        Step for testing, returning the evaluation metric such as ROC-AUC.
         """
         pass
